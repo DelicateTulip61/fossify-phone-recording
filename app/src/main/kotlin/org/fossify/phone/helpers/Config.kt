@@ -147,4 +147,8 @@ class Config(context: Context) : BaseConfig(context) {
     var callRecordingAudioSource: Int
         get() = prefs.getInt(CALL_RECORDING_AUDIO_SOURCE, RECORDING_SOURCE_AUTO)
         set(callRecordingAudioSource) = prefs.edit().putInt(CALL_RECORDING_AUDIO_SOURCE, callRecordingAudioSource).apply()
+
+    var lastWorkingRecordingSource: Int
+        get() = prefs.getInt(CALL_RECORDING_LAST_WORKING_SOURCE, 0)
+        set(source) = prefs.edit().putInt(CALL_RECORDING_LAST_WORKING_SOURCE, source).apply()
 }

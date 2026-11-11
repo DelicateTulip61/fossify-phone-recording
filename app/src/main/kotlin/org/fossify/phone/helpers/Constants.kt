@@ -22,6 +22,7 @@ const val ALWAYS_SHOW_FULLSCREEN = "always_show_fullscreen"
 const val CALL_RECORDING_ENABLED = "call_recording_enabled"
 const val CALL_RECORDING_MODE = "call_recording_mode"
 const val CALL_RECORDING_AUDIO_SOURCE = "call_recording_audio_source"
+const val CALL_RECORDING_LAST_WORKING_SOURCE = "call_recording_last_working_source"
 
 // call recording modes
 const val RECORDING_MODE_MANUAL = 0

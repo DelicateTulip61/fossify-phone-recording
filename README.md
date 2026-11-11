@@ -26,6 +26,8 @@ The app id is `org.fossify.phone.rec`, so it can be installed next to both Googl
 
 Android has no public, guaranteed API for recording both call sides. The app tries `VOICE_CALL` first, then `VOICE_COMMUNICATION`, then the microphone. On devices and ROMs that allow `VOICE_CALL` for the default dialer you get a clean two-sided recording. On locked-down ROMs the fallback records your side plus room audio through the mic — use the speaker for the best result.
 
+Some ROMs accept `VOICE_CALL` and then write pure silence. The app therefore samples each source for three seconds and switches to the next one while the level stays at zero, so a silent source can't leave you with an empty file. The last source that produced real audio is remembered and tried first on the next call.
+
 If a source fails, the app falls back automatically and keeps recording instead of aborting.
 
 ## Build

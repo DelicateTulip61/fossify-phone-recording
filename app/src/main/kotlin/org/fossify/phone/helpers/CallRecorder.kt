@@ -5,7 +5,10 @@ import android.content.Context
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import org.fossify.phone.extensions.config
 import org.fossify.phone.models.Events
 import org.greenrobot.eventbus.EventBus
@@ -17,16 +20,26 @@ import java.util.Locale
 /**
  * Records the currently active call.
  *
- * Audio sources are tried in order of quality: VOICE_CALL (both sides, needs a device that allows it
- * for dialers), then VOICE_COMMUNICATION, then MIC (always works, but only captures this side clearly).
- * On devices where the OEM blocks VOICE_CALL the recording falls back automatically.
+ * Android guarantees no source that captures both sides, and some ROMs accept VOICE_CALL but then
+ * write pure silence. So every candidate is started, sampled for 3 seconds through
+ * MediaRecorder.getMaxAmplitude(), and swapped for the next one when it stays at zero.
+ * The last source that produced real audio is remembered and tried first next time.
  */
 object CallRecorder {
+    private const val TAG = "CallRecorder"
+    private const val SILENCE_CHECK_DELAY = 3000L
+
     private var recorder: MediaRecorder? = null
     private var tempFile: File? = null
     private var startedAt = 0L
     private var callNumber = ""
     private var usedSource = 0
+    private var attemptId = 0
+    private var candidates: List<Int> = emptyList()
+    private var candidateIndex = 0
+    private var hasSentStartEvent = false
+
+    private val handler = Handler(Looper.getMainLooper())
 
     var stateListener: ((Boolean) -> Unit)? = null
 
@@ -41,33 +54,112 @@ object CallRecorder {
             return true
         }
 
-        val file = createTempFile(context) ?: return false
-        val sources = getAudioSources(context)
-        for (source in sources) {
+        callNumber = number
+        candidates = getAudioSources(context)
+        candidateIndex = 0
+        hasSentStartEvent = false
+
+        val started = tryNextSource(context)
+        if (started) {
+            sendStartEventIfNeeded()
+        }
+        return started
+    }
+
+    private fun tryNextSource(context: Context): Boolean {
+        while (candidateIndex < candidates.size) {
+            val source = candidates[candidateIndex]
+            val file = createTempFile(context)
+            if (file == null) {
+                candidateIndex++
+                continue
+            }
+
             try {
                 val newRecorder = createRecorder(context, source, file)
                 recorder = newRecorder
-                usedSource = source
                 tempFile = file
                 startedAt = SystemClock.elapsedRealtime()
-                callNumber = number
-                EventBus.getDefault().post(Events.RecordingStateChanged(true))
-                stateListener?.invoke(true)
+                usedSource = source
+                Log.d(TAG, "recording started with source $source")
+                scheduleSilenceCheck(context)
                 return true
             } catch (e: Exception) {
-                recorder?.release()
+                Log.w(TAG, "source $source failed: ${e.message}")
+                try {
+                    recorder?.release()
+                } catch (ignored: Exception) {
+                }
                 recorder = null
                 file.delete()
+                candidateIndex++
             }
         }
 
-        tempFile = null
+        Log.w(TAG, "no usable audio source")
         return false
+    }
+
+    private fun scheduleSilenceCheck(context: Context) {
+        val currentAttempt = ++attemptId
+        handler.postDelayed({
+            if (currentAttempt != attemptId || recorder == null) {
+                return@postDelayed
+            }
+
+            val amplitude = try {
+                recorder?.maxAmplitude ?: 0
+            } catch (e: Exception) {
+                0
+            }
+            Log.d(TAG, "amplitude after ${SILENCE_CHECK_DELAY}ms: $amplitude (source $usedSource)")
+
+            if (amplitude > 0) {
+                context.config.lastWorkingRecordingSource = usedSource
+                return@postDelayed
+            }
+
+            // the source is accepted but writes silence, move on to the next one
+            abortCurrent()
+            candidateIndex++
+            if (!tryNextSource(context)) {
+                stop(context)
+                return@postDelayed
+            }
+            sendStartEventIfNeeded()
+        }, SILENCE_CHECK_DELAY)
+    }
+
+    private fun sendStartEventIfNeeded() {
+        if (hasSentStartEvent) {
+            return
+        }
+        hasSentStartEvent = true
+        EventBus.getDefault().post(Events.RecordingStateChanged(true))
+        stateListener?.invoke(true)
+    }
+
+    private fun abortCurrent() {
+        val activeRecorder = recorder ?: return
+        recorder = null
+        attemptId++
+
+        try {
+            activeRecorder.stop()
+        } catch (ignored: Exception) {
+        }
+        try {
+            activeRecorder.release()
+        } catch (ignored: Exception) {
+        }
+        tempFile?.delete()
+        tempFile = null
     }
 
     fun stop(context: Context): Uri? {
         val activeRecorder = recorder ?: return null
         recorder = null
+        attemptId++
 
         var saved: Uri? = null
         try {
@@ -92,6 +184,7 @@ object CallRecorder {
 
         startedAt = 0L
         callNumber = ""
+        hasSentStartEvent = false
         EventBus.getDefault().post(Events.RecordingStateChanged(false))
         stateListener?.invoke(false)
         return saved
@@ -106,7 +199,7 @@ object CallRecorder {
         }
     }
 
-    fun getAudioSourceLabel(context: Context) = when (usedSource) {
+    fun getAudioSourceLabel() = when (usedSource) {
         MediaRecorder.AudioSource.VOICE_CALL -> "VOICE_CALL"
         MediaRecorder.AudioSource.VOICE_COMMUNICATION -> "VOICE_COMMUNICATION"
         MediaRecorder.AudioSource.MIC -> "MIC"
@@ -127,7 +220,18 @@ object CallRecorder {
             MediaRecorder.AudioSource.MIC
         )
 
-        return if (forced == null) autoSources else listOf(forced) + autoSources.filter { it != forced }
+        return if (forced == null) {
+            val lastWorking = context.config.lastWorkingRecordingSource
+            val ordered = if (lastWorking != 0 && autoSources.contains(lastWorking)) {
+                listOf(lastWorking) + autoSources.filter { it != lastWorking }
+            } else {
+                autoSources
+            }
+            // the microphone always stays as the final safety net
+            ordered.filter { it != MediaRecorder.AudioSource.MIC } + MediaRecorder.AudioSource.MIC
+        } else {
+            listOf(forced) + autoSources.filter { it != forced }
+        }
     }
 
     private fun createTempFile(context: Context): File? {
