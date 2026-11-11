@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.RippleDrawable
 import android.media.AudioManager
@@ -37,6 +38,10 @@ import org.fossify.phone.extensions.*
 import org.fossify.phone.helpers.*
 import org.fossify.phone.models.AudioRoute
 import org.fossify.phone.models.CallContact
+import org.fossify.phone.models.Events
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import kotlin.math.max
 import kotlin.math.min
 
@@ -65,6 +70,8 @@ class CallActivity : SimpleActivity() {
     private var dialpadHeight = 0f
 
     private var audioRouteChooserDialog: DynamicBottomSheetChooserDialog? = null
+
+    private var isEventListenerRegistered = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,6 +103,23 @@ class CallActivity : SimpleActivity() {
     override fun onResume() {
         super.onResume()
         updateState()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (!isEventListenerRegistered) {
+            EventBus.getDefault().register(this)
+            isEventListenerRegistered = true
+        }
+        updateRecordingButton()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (isEventListenerRegistered) {
+            EventBus.getDefault().unregister(this)
+            isEventListenerRegistered = false
+        }
     }
 
     override fun onDestroy() {
@@ -178,6 +202,10 @@ class CallActivity : SimpleActivity() {
             CallManager.merge()
         }
 
+        callRecord.setOnClickListener {
+            toggleRecording()
+        }
+
         callManage.setOnClickListener {
             startActivity(Intent(this@CallActivity, ConferenceActivity::class.java))
         }
@@ -240,7 +268,7 @@ class CallActivity : SimpleActivity() {
         val inactiveColor = getInactiveButtonColor()
         arrayOf(
             callToggleMicrophone, callToggleSpeaker, callDialpad,
-            callToggleHold, callAdd, callSwap, callMerge, callManage
+            callToggleHold, callAdd, callSwap, callMerge, callManage, callRecord
         ).forEach {
             it.applyColorFilter(bgColor.getContrastColor())
             it.background.applyColorFilter(inactiveColor)
@@ -248,7 +276,7 @@ class CallActivity : SimpleActivity() {
 
         arrayOf(
             callToggleMicrophone, callToggleSpeaker, callDialpad,
-            callToggleHold, callAdd, callSwap, callMerge, callManage
+            callToggleHold, callAdd, callSwap, callMerge, callManage, callRecord
         ).forEach { imageView ->
             imageView.setOnLongClickListener {
                 if (!imageView.contentDescription.isNullOrEmpty()) {
@@ -571,6 +599,57 @@ class CallActivity : SimpleActivity() {
         binding.holdStatusLabel.beInvisibleIf(!isOnHold)
     }
 
+    private fun toggleRecording() {
+        if (CallRecorder.isRecording) {
+            CallRecorder.stop(this)
+            return
+        }
+
+        val call = CallManager.getPrimaryCall() ?: return
+        val number = callContact?.number ?: call.details?.handle?.schemeSpecificPart.orEmpty()
+        val isIncoming = !call.isOutgoing()
+
+        handlePermission(PERMISSION_RECORD_AUDIO) { granted ->
+            if (granted) {
+                if (!CallRecorder.start(this, number, isIncoming)) {
+                    toast(R.string.recording_failed)
+                }
+            } else {
+                toast(R.string.recording_permission_required)
+            }
+        }
+    }
+
+    private fun updateRecordingButton() = binding.apply {
+        callRecord.beVisibleIf(config.callRecordingEnabled)
+
+        if (CallRecorder.isRecording) {
+            callRecord.setImageResource(R.drawable.ic_record_stop_vector)
+            callRecord.contentDescription = getString(R.string.stop_recording)
+            callRecord.background.applyColorFilter(getColor(R.color.md_red_400))
+            callRecord.applyColorFilter(Color.WHITE)
+        } else {
+            callRecord.setImageResource(R.drawable.ic_record_vector)
+            callRecord.contentDescription = getString(R.string.record_call)
+            callRecord.background.applyColorFilter(getInactiveButtonColor())
+            callRecord.applyColorFilter(getProperBackgroundColor().getContrastColor())
+        }
+
+        recordingStatusLabel.beVisibleIf(CallRecorder.isRecording)
+        val canRecord = !isCallEnded && CallManager.getState() == Call.STATE_ACTIVE
+        setActionButtonEnabled(callRecord, canRecord)
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onRecordingStateChanged(event: Events.RecordingStateChanged) {
+        updateRecordingButton()
+        if (event.isRecording) {
+            toast(R.string.recording_started)
+        } else {
+            toast(R.string.recording_saved)
+        }
+    }
+
     private fun updateOtherPersonsInfo(avatarUri: String?) {
         if (callContact == null) {
             return
@@ -693,6 +772,7 @@ class CallActivity : SimpleActivity() {
         }
 
         updateCallAudioState(CallManager.getCallAudioRoute())
+        updateRecordingButton()
     }
 
     private fun updateCallOnHoldState(call: Call?) {
@@ -747,6 +827,7 @@ class CallActivity : SimpleActivity() {
         binding.callEnd.beVisible()
         callDurationHandler.removeCallbacks(updateCallDurationTask)
         callDurationHandler.post(updateCallDurationTask)
+        updateRecordingButton()
     }
 
     private fun showPhoneAccountPicker() {
@@ -761,6 +842,10 @@ class CallActivity : SimpleActivity() {
         CallManager.reject()
         disableProximitySensor()
         audioRouteChooserDialog?.dismissAllowingStateLoss()
+
+        if (CallRecorder.isRecording) {
+            CallRecorder.stop(this)
+        }
 
         if (isCallEnded) {
             safeFinishAndRemoveTask()

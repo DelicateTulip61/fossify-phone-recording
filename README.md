@@ -1,34 +1,54 @@
-# Fossify Phone
-<img alt="Logo" src="graphics/icon.webp" width="120" />
+# Phone — call recording fork
 
-<a href='https://play.google.com/store/apps/details?id=org.fossify.phone'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' height=80/></a> <a href="https://f-droid.org/packages/org.fossify.phone/"><img src="https://fdroid.gitlab.io/artwork/badge/get-it-on-en.svg" alt="Get it on F-Droid" height=80/></a> <a href="https://apt.izzysoft.de/fdroid/index/apk/org.fossify.phone"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height=80/></a>
+![Icon](graphics/fork_icon_preview.png)
 
-Empower your calls, and safeguard your data. Fossify Phone redefines the mobile app experience with unmatched privacy and efficiency. Free from ads and intrusive permissions, it's designed for seamless and secure everyday communication.
+A fork of [Fossify Phone](https://github.com/FossifyOrg/Phone) with built-in call recording.
 
-📱 **YOUR PRIVACY, OUR PRIORITY:**  
-Welcome to the Fossify Phone App, where your digital privacy is paramount. Switch to a mobile experience that respects your data, ensuring your personal information remains secure and private.
+Why: the Google dialer has no recording button on most devices, and neither has the stock Fossify build. This fork adds it without ads, trackers or a Google account.
 
-🚀 **SEAMLESS PERFORMANCE:**  
-The Fossify Phone App offers a fluid and responsive mobile interface, enhancing your phone's performance while safeguarding your privacy. Experience a lag-free, smooth user experience, optimized for efficiency and speed.
+## Features
 
-🌐 **OPEN-SOURCE ASSURANCE:**  
-With the Fossify Phone App, transparency is at your fingertips. Built on an open-source foundation, our app allows you to review our code on GitHub, fostering trust and a community committed to privacy.
+- **Record from the in-call screen** — a record button next to mute/speaker/dialpad.
+- **Automatic recording** — off, all calls, incoming only, or outgoing only.
+- **Selectable audio source** — automatic, voice call (both sides), voice communication, or microphone only.
+- **Recordings manager** — play, share and delete saved calls.
+- **Ongoing notification** with a stop action while a call is being recorded.
+- Recordings are stored as AAC/M4A in `Music/Call recordings`, readable by any file manager or player.
+- Everything else is upstream Fossify Phone: T9 dialer, call log, blocking, multi-SIM, no ads.
 
-🖼️ **TAILOR-MADE CUSTOMIZATION:**  
-Customize your mobile experience with the Fossify Phone App. Adjust your app settings for a personalized interface, from thematic designs to functional preferences. Enjoy a user interface that's intuitive and uniquely yours.
+## Install
 
-🔋 **EFFICIENT RESOURCE MANAGEMENT:**  
-The Fossify Phone App is designed for optimal resource usage, contributing to extended battery life. It's light on your phone's resources, ensuring your device runs efficiently with minimized battery drain.
+Download the APK from this repository's releases and sideload it, then set the app as the default Phone app.
 
-Download the Fossify Phone App now and step into a mobile world where privacy seamlessly blends with functionality. Your journey towards a safer, personalized mobile experience starts here.
+The app id is `org.fossify.phone.rec`, so it can be installed next to both Google Phone and Fossify Phone.
 
-➡️ Explore more Fossify apps: https://www.fossify.org<br>
-➡️ Open-Source Code: https://www.github.com/FossifyOrg<br>
-➡️ Join the community on Reddit: https://www.reddit.com/r/Fossify<br>
-➡️ Connect on Telegram: https://t.me/Fossify
+## Recording quality and device support
 
-<div align="center">
-<img alt="App image" src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_en-US.png" width="30%">
-<img alt="App image" src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_en-US.png" width="30%">
-<img alt="App image" src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_en-US.png" width="30%">
-</div>
+Android has no public, guaranteed API for recording both call sides. The app tries `VOICE_CALL` first, then `VOICE_COMMUNICATION`, then the microphone. On devices and ROMs that allow `VOICE_CALL` for the default dialer you get a clean two-sided recording. On locked-down ROMs the fallback records your side plus room audio through the mic — use the speaker for the best result.
+
+If a source fails, the app falls back automatically and keeps recording instead of aborting.
+
+## Build
+
+Requirements: JDK 17+ and Android SDK 36.
+
+```bash
+echo "sdk.dir=/path/to/android-sdk" > local.properties
+./gradlew assembleFossDebug
+```
+
+The APK lands in `app/build/outputs/apk/foss/debug/`.
+
+The upstream `foss` and `gplay` flavors are both still available; `foss` has no Google dependencies.
+
+## Changes from upstream
+
+- `CallRecorder`, `RecordingStorage`, recording settings and the recordings screen.
+- `CallService` starts/stops automatic recordings and holds the foreground recording notification.
+- New `RECORD_AUDIO` runtime prompt, plus `FOREGROUND_SERVICE_MICROPHONE`, `FOREGROUND_SERVICE_PHONE_CALL` and legacy `WRITE_EXTERNAL_STORAGE` (`maxSdkVersion=28`).
+- App id `org.fossify.phone.rec`, version `1.11.2-rec`.
+- Launcher name and icon styled after the Google dialer.
+
+## License
+
+GPL-3.0, same as upstream. Original code © Fossify contributors.

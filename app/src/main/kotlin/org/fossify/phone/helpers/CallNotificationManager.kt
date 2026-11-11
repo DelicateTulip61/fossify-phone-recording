@@ -5,9 +5,11 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager.IMPORTANCE_DEFAULT
 import android.app.NotificationManager.IMPORTANCE_HIGH
+import android.app.NotificationManager.IMPORTANCE_LOW
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Icon
 import android.telecom.Call
 import android.widget.RemoteViews
 import org.fossify.commons.extensions.notificationManager
@@ -15,6 +17,10 @@ import org.fossify.commons.extensions.setText
 import org.fossify.commons.extensions.setVisibleIf
 import org.fossify.phone.R
 import org.fossify.phone.activities.CallActivity
+import org.fossify.phone.activities.RecordingsActivity
+import org.fossify.phone.helpers.RECORDING_CHANNEL_ID
+import org.fossify.phone.helpers.RECORDING_NOTIFICATION_ID
+import org.fossify.phone.helpers.STOP_RECORDING
 import org.fossify.phone.receivers.CallActionReceiver
 
 class CallNotificationManager(private val context: Context) {
@@ -128,5 +134,55 @@ class CallNotificationManager(private val context: Context) {
 
     fun cancelNotification() {
         notificationManager.cancel(CALL_NOTIFICATION_ID)
+    }
+
+    fun buildRecordingNotification(callerName: String): Notification {
+        createRecordingChannel()
+
+        val openRecordingsIntent = PendingIntent.getActivity(
+            context,
+            0,
+            RecordingsActivity.getStartIntent(context),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val stopRecordingIntent = Intent(context, CallActionReceiver::class.java).apply {
+            action = STOP_RECORDING
+        }
+        val stopRecordingPendingIntent = PendingIntent.getBroadcast(
+            context,
+            2,
+            stopRecordingIntent,
+            PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val stopIcon = Icon.createWithResource(context, R.drawable.ic_record_stop_vector)
+        return Notification.Builder(context, RECORDING_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_record_vector)
+            .setContentTitle(context.getString(R.string.recording_call))
+            .setContentText(callerName)
+            .setContentIntent(openRecordingsIntent)
+            .setCategory(Notification.CATEGORY_SERVICE)
+            .setOngoing(true)
+            .setUsesChronometer(true)
+            .setWhen(System.currentTimeMillis())
+            .addAction(Notification.Action.Builder(stopIcon, context.getString(R.string.stop_recording), stopRecordingPendingIntent).build())
+            .build()
+    }
+
+    fun cancelRecordingNotification() {
+        notificationManager.cancel(RECORDING_NOTIFICATION_ID)
+    }
+
+    private fun createRecordingChannel() {
+        val channel = NotificationChannel(
+            RECORDING_CHANNEL_ID,
+            context.getString(R.string.recording_notification_channel),
+            IMPORTANCE_LOW
+        ).apply {
+            setSound(null, null)
+            setShowBadge(false)
+        }
+        notificationManager.createNotificationChannel(channel)
     }
 }

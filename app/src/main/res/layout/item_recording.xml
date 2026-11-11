@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="@dimen/activity_margin"
+    android:paddingVertical="@dimen/normal_margin">
+
+    <ImageView
+        android:layout_width="@dimen/normal_icon_size"
+        android:layout_height="@dimen/normal_icon_size"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_record_vector" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/activity_margin"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <org.fossify.commons.views.MyTextView
+            android:id="@+id/recording_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="middle"
+            android:maxLines="1"
+            android:textSize="@dimen/bigger_text_size" />
+
+        <org.fossify.commons.views.MyTextView
+            android:id="@+id/recording_details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alpha="0.7"
+            android:maxLines="1"
+            android:textSize="@dimen/normal_text_size" />
+    </LinearLayout>
+</LinearLayout>

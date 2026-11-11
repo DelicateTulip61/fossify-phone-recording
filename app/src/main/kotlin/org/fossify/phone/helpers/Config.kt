@@ -135,4 +135,16 @@ class Config(context: Context) : BaseConfig(context) {
     var alwaysShowFullscreen: Boolean
         get() = prefs.getBoolean(ALWAYS_SHOW_FULLSCREEN, false)
         set(alwaysShowFullscreen) = prefs.edit().putBoolean(ALWAYS_SHOW_FULLSCREEN, alwaysShowFullscreen).apply()
+
+    var callRecordingEnabled: Boolean
+        get() = prefs.getBoolean(CALL_RECORDING_ENABLED, false)
+        set(callRecordingEnabled) = prefs.edit().putBoolean(CALL_RECORDING_ENABLED, callRecordingEnabled).apply()
+
+    var callRecordingMode: Int
+        get() = prefs.getInt(CALL_RECORDING_MODE, RECORDING_MODE_MANUAL)
+        set(callRecordingMode) = prefs.edit().putInt(CALL_RECORDING_MODE, callRecordingMode).apply()
+
+    var callRecordingAudioSource: Int
+        get() = prefs.getInt(CALL_RECORDING_AUDIO_SOURCE, RECORDING_SOURCE_AUTO)
+        set(callRecordingAudioSource) = prefs.edit().putInt(CALL_RECORDING_AUDIO_SOURCE, callRecordingAudioSource).apply()
 }

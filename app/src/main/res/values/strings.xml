@@ -84,6 +84,37 @@
     <string name="import_call_history">Import call history</string>
     <string name="calling_accounts">Calling accounts</string>
 
+    <!-- Call recording -->
+    <string name="call_recording">Call recording</string>
+    <string name="enable_call_recording">Enable call recording</string>
+    <string name="auto_record_calls">Auto-record calls</string>
+    <string name="auto_record_manual_only">Only when I press record</string>
+    <string name="auto_record_all_calls">All calls</string>
+    <string name="auto_record_incoming_calls">Incoming calls only</string>
+    <string name="auto_record_outgoing_calls">Outgoing calls only</string>
+    <string name="recording_audio_source">Audio source</string>
+    <string name="recording_source_automatic">Automatic (recommended)</string>
+    <string name="recording_source_voice_call">Voice call (both sides)</string>
+    <string name="recording_source_voice_communication">Voice communication</string>
+    <string name="recording_source_mic">Microphone only</string>
+    <string name="recording_device_note">Both-sides recording depends on your device and ROM. If the other side is quiet or missing, try another audio source or use the speaker. Recordings are saved to Music/Call recordings.</string>
+    <string name="record_call">Record call</string>
+    <string name="stop_recording">Stop recording</string>
+    <string name="recording_call">Recording call…</string>
+    <string name="recording_started">Recording started</string>
+    <string name="recording_saved">Recording saved</string>
+    <string name="recording_failed">Could not start recording. Try a different audio source in the settings.</string>
+    <string name="recording_permission_required">Microphone access is required for call recording</string>
+    <string name="recording_notification_channel">Call recording</string>
+    <string name="recorded_calls">Recorded calls</string>
+    <string name="no_recordings">No call recordings yet</string>
+    <string name="play_recording">Play</string>
+    <string name="share_recording">Share</string>
+    <string name="delete_recording">Delete</string>
+    <string name="delete_recording_confirmation">Are you sure you want to delete this recording?</string>
+    <string name="deleting_failed">Could not delete the recording</string>
+    <string name="no_app_for_playing_recordings">No app found for playing the recording</string>
+
     <!-- FAQ -->
     <string name="faq_1_title">I hear incoming calls, but the screen doesn\'t turn on. What can I do?</string>
     <string name="faq_1_text">Such issues can have many device and system specific reasons, hard to say in general. You should look around in your device settings and make sure that the app is allowed to pop up when in background and allow displaying over other apps.</string>

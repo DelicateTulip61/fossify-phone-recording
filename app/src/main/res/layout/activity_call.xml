@@ -134,6 +134,22 @@
         app:layout_constraintTop_toBottomOf="@+id/call_status_label"
         tools:visibility="visible" />
 
+    <TextView
+        android:id="@+id/recording_status_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/normal_margin"
+        android:alpha="0.8"
+        android:text="@string/recording_call"
+        android:textColor="@color/md_red"
+        android:textSize="@dimen/call_status_text_size"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/guideline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/hold_status_label"
+        tools:visibility="visible" />
+
     <ImageView
         android:id="@+id/call_sim_image"
         android:layout_width="@dimen/normal_icon_size"
@@ -192,7 +208,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginHorizontal="@dimen/medium_margin"
-            app:constraint_referenced_ids="call_toggle_microphone,call_toggle_speaker,call_dialpad,call_toggle_hold,call_add,call_manage,call_swap,call_merge"
+            app:constraint_referenced_ids="call_toggle_microphone,call_toggle_speaker,call_dialpad,call_toggle_hold,call_add,call_manage,call_swap,call_merge,call_record"
             app:flow_horizontalGap="@dimen/activity_margin"
             app:flow_maxElementsWrap="3"
             app:flow_verticalGap="@dimen/activity_margin"
@@ -290,6 +306,19 @@
             android:src="@drawable/ic_call_merge_vector"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintHeight_max="@dimen/call_control_button_size" />
+
+        <ImageView
+            android:id="@+id/call_record"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/circle_background"
+            android:contentDescription="@string/record_call"
+            android:padding="@dimen/activity_margin"
+            android:src="@drawable/ic_record_vector"
+            android:visibility="gone"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintHeight_max="@dimen/call_control_button_size"
+            tools:visibility="visible" />
 
         <androidx.constraintlayout.widget.Group
             android:id="@+id/controls_single_call"

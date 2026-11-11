@@ -19,6 +19,24 @@ const val DIALPAD_VIBRATION = "dialpad_vibration"
 const val DIALPAD_BEEPS = "dialpad_beeps"
 const val HIDE_DIALPAD_NUMBERS = "hide_dialpad_numbers"
 const val ALWAYS_SHOW_FULLSCREEN = "always_show_fullscreen"
+const val CALL_RECORDING_ENABLED = "call_recording_enabled"
+const val CALL_RECORDING_MODE = "call_recording_mode"
+const val CALL_RECORDING_AUDIO_SOURCE = "call_recording_audio_source"
+
+// call recording modes
+const val RECORDING_MODE_MANUAL = 0
+const val RECORDING_MODE_ALL = 1
+const val RECORDING_MODE_INCOMING = 2
+const val RECORDING_MODE_OUTGOING = 3
+
+// call recording audio sources
+const val RECORDING_SOURCE_AUTO = 0
+const val RECORDING_SOURCE_VOICE_CALL = 1
+const val RECORDING_SOURCE_VOICE_COMMUNICATION = 2
+const val RECORDING_SOURCE_MIC = 3
+
+const val RECORDING_NOTIFICATION_ID = 43
+const val RECORDING_CHANNEL_ID = "simple_dialer_call_recording"
 
 const val ALL_TABS_MASK = TAB_CONTACTS or TAB_FAVORITES or TAB_CALL_HISTORY
 
@@ -27,5 +45,6 @@ val tabsList = arrayListOf(TAB_CONTACTS, TAB_FAVORITES, TAB_CALL_HISTORY)
 private const val PATH = "org.fossify.phone.action."
 const val ACCEPT_CALL = PATH + "ACCEPT_CALL"
 const val DECLINE_CALL = PATH + "DECLINE_CALL"
+const val STOP_RECORDING = PATH + "STOP_RECORDING"
 
 const val DIALPAD_TONE_LENGTH_MS = 150L // The length of DTMF tones in milliseconds

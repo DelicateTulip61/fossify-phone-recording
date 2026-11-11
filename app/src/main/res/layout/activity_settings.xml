@@ -371,6 +371,103 @@
             </RelativeLayout>
 
             <include
+                android:id="@+id/settings_recording_divider"
+                layout="@layout/divider" />
+
+            <TextView
+                android:id="@+id/settings_recording_section_label"
+                style="@style/SettingsSectionLabelStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/call_recording" />
+
+            <RelativeLayout
+                android:id="@+id/settings_call_recording_enabled_holder"
+                style="@style/SettingsHolderSwitchStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <org.fossify.commons.views.MyMaterialSwitch
+                    android:id="@+id/settings_call_recording_enabled"
+                    style="@style/SettingsSwitchStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/enable_call_recording" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/settings_call_recording_mode_holder"
+                style="@style/SettingsHolderTextViewStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <org.fossify.commons.views.MyTextView
+                    android:id="@+id/settings_call_recording_mode_label"
+                    style="@style/SettingsTextLabelStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/auto_record_calls" />
+
+                <org.fossify.commons.views.MyTextView
+                    android:id="@+id/settings_call_recording_mode"
+                    style="@style/SettingsTextValueStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/settings_call_recording_mode_label"
+                    tools:text="@string/auto_record_all_calls" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/settings_call_recording_source_holder"
+                style="@style/SettingsHolderTextViewStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <org.fossify.commons.views.MyTextView
+                    android:id="@+id/settings_call_recording_source_label"
+                    style="@style/SettingsTextLabelStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/recording_audio_source" />
+
+                <org.fossify.commons.views.MyTextView
+                    android:id="@+id/settings_call_recording_source"
+                    style="@style/SettingsTextValueStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/settings_call_recording_source_label"
+                    tools:text="@string/recording_source_automatic" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/settings_recorded_calls_holder"
+                style="@style/SettingsHolderTextViewOneLinerStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <org.fossify.commons.views.MyTextView
+                    android:id="@+id/settings_recorded_calls"
+                    style="@style/SettingsTextLabelStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/recorded_calls" />
+
+            </RelativeLayout>
+
+            <org.fossify.commons.views.MyTextView
+                android:id="@+id/settings_recording_note"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:alpha="0.7"
+                android:paddingHorizontal="@dimen/normal_margin"
+                android:paddingBottom="@dimen/normal_margin"
+                android:text="@string/recording_device_note"
+                android:textSize="@dimen/normal_text_size" />
+
+            <include
                 android:id="@+id/settings_dialpad_divider"
                 layout="@layout/divider" />
 

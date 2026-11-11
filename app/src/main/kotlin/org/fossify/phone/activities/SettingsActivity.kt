@@ -25,6 +25,7 @@ import org.fossify.commons.helpers.FONT_SIZE_SMALL
 import org.fossify.commons.helpers.NavigationIcon
 import org.fossify.commons.helpers.ON_CLICK_CALL_CONTACT
 import org.fossify.commons.helpers.ON_CLICK_VIEW_CONTACT
+import org.fossify.commons.helpers.PERMISSION_RECORD_AUDIO
 import org.fossify.commons.helpers.TAB_CALL_HISTORY
 import org.fossify.commons.helpers.TAB_CONTACTS
 import org.fossify.commons.helpers.TAB_FAVORITES
@@ -40,6 +41,14 @@ import org.fossify.phone.dialogs.ManageVisibleTabsDialog
 import org.fossify.phone.extensions.canLaunchAccountsConfiguration
 import org.fossify.phone.extensions.config
 import org.fossify.phone.extensions.launchAccountsConfiguration
+import org.fossify.phone.helpers.RECORDING_MODE_ALL
+import org.fossify.phone.helpers.RECORDING_MODE_INCOMING
+import org.fossify.phone.helpers.RECORDING_MODE_MANUAL
+import org.fossify.phone.helpers.RECORDING_MODE_OUTGOING
+import org.fossify.phone.helpers.RECORDING_SOURCE_AUTO
+import org.fossify.phone.helpers.RECORDING_SOURCE_MIC
+import org.fossify.phone.helpers.RECORDING_SOURCE_VOICE_CALL
+import org.fossify.phone.helpers.RECORDING_SOURCE_VOICE_COMMUNICATION
 import org.fossify.phone.helpers.RecentsHelper
 import org.fossify.phone.models.RecentCall
 import java.util.Locale
@@ -112,6 +121,7 @@ class SettingsActivity : SimpleActivity() {
         setupDisableProximitySensor()
         setupDisableSwipeToAnswer()
         setupAlwaysShowFullscreen()
+        setupCallRecording()
         setupCallsExport()
         setupCallsImport()
         updateTextColors(binding.settingsHolder)
@@ -122,6 +132,7 @@ class SettingsActivity : SimpleActivity() {
                 settingsGeneralSettingsLabel,
                 settingsStartupLabel,
                 settingsCallsLabel,
+                settingsRecordingSectionLabel,
                 settingsDialpadSectionLabel,
                 settingsMigrationSectionLabel
             ).forEach {
@@ -383,6 +394,89 @@ class SettingsActivity : SimpleActivity() {
             }
         }
     }
+
+    private fun setupCallRecording() {
+        binding.apply {
+            settingsCallRecordingEnabled.isChecked = config.callRecordingEnabled
+            settingsCallRecordingEnabledHolder.setOnClickListener {
+                if (config.callRecordingEnabled) {
+                    config.callRecordingEnabled = false
+                    settingsCallRecordingEnabled.isChecked = false
+                    updateRecordingViews()
+                } else {
+                    handlePermission(PERMISSION_RECORD_AUDIO) { granted ->
+                        if (granted) {
+                            config.callRecordingEnabled = true
+                            settingsCallRecordingEnabled.isChecked = true
+                            updateRecordingViews()
+                        } else {
+                            toast(R.string.recording_permission_required)
+                        }
+                    }
+                }
+            }
+
+            settingsCallRecordingMode.text = getRecordingModeText()
+            settingsCallRecordingModeHolder.setOnClickListener {
+                val items = arrayListOf(
+                    RadioItem(RECORDING_MODE_MANUAL, getString(R.string.auto_record_manual_only)),
+                    RadioItem(RECORDING_MODE_ALL, getString(R.string.auto_record_all_calls)),
+                    RadioItem(RECORDING_MODE_INCOMING, getString(R.string.auto_record_incoming_calls)),
+                    RadioItem(RECORDING_MODE_OUTGOING, getString(R.string.auto_record_outgoing_calls))
+                )
+
+                RadioGroupDialog(this@SettingsActivity, items, config.callRecordingMode) {
+                    config.callRecordingMode = it as Int
+                    settingsCallRecordingMode.text = getRecordingModeText()
+                }
+            }
+
+            settingsCallRecordingSource.text = getRecordingSourceText()
+            settingsCallRecordingSourceHolder.setOnClickListener {
+                val items = arrayListOf(
+                    RadioItem(RECORDING_SOURCE_AUTO, getString(R.string.recording_source_automatic)),
+                    RadioItem(RECORDING_SOURCE_VOICE_CALL, getString(R.string.recording_source_voice_call)),
+                    RadioItem(RECORDING_SOURCE_VOICE_COMMUNICATION, getString(R.string.recording_source_voice_communication)),
+                    RadioItem(RECORDING_SOURCE_MIC, getString(R.string.recording_source_mic))
+                )
+
+                RadioGroupDialog(this@SettingsActivity, items, config.callRecordingAudioSource) {
+                    config.callRecordingAudioSource = it as Int
+                    settingsCallRecordingSource.text = getRecordingSourceText()
+                }
+            }
+
+            settingsRecordedCallsHolder.setOnClickListener {
+                startActivity(Intent(this@SettingsActivity, RecordingsActivity::class.java))
+            }
+
+            updateRecordingViews()
+        }
+    }
+
+    private fun updateRecordingViews() {
+        val enabled = config.callRecordingEnabled
+        binding.settingsCallRecordingModeHolder.beVisibleIf(enabled)
+        binding.settingsCallRecordingSourceHolder.beVisibleIf(enabled)
+    }
+
+    private fun getRecordingModeText() = getString(
+        when (config.callRecordingMode) {
+            RECORDING_MODE_ALL -> R.string.auto_record_all_calls
+            RECORDING_MODE_INCOMING -> R.string.auto_record_incoming_calls
+            RECORDING_MODE_OUTGOING -> R.string.auto_record_outgoing_calls
+            else -> R.string.auto_record_manual_only
+        }
+    )
+
+    private fun getRecordingSourceText() = getString(
+        when (config.callRecordingAudioSource) {
+            RECORDING_SOURCE_VOICE_CALL -> R.string.recording_source_voice_call
+            RECORDING_SOURCE_VOICE_COMMUNICATION -> R.string.recording_source_voice_communication
+            RECORDING_SOURCE_MIC -> R.string.recording_source_mic
+            else -> R.string.recording_source_automatic
+        }
+    )
 
     private fun setupCallsExport() {
         binding.settingsExportCallsHolder.setOnClickListener {
